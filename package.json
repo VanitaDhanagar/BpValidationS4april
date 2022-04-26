@@ -1,51 +1,77 @@
 {
-  "name": "BpValidationS4april",
-  "version": "1.0.0",
-  "description": "A simple CAP project.",
-  "repository": "<Add your repository here>",
-  "license": "UNLICENSED",
-  "private": true,
-  "dependencies": {
-    "@sap/cds": "^5",
-    "express": "^4"
-  },
-  "devDependencies": {
-    "sqlite3": "^5.0.2"
-  },
-  "scripts": {
-    "start": "cds run"
-  },
-  "eslintConfig": {
-    "extends": "eslint:recommended",
-    "env": {
-      "es2020": true,
-      "node": true,
-      "jest": true,
-      "mocha": true
+    "name": "BusinessPartnerValidation",
+    "version": "1.0.0",
+    "description": "A simple CAP project.",
+    "license": "ISC",
+    "dependencies": {
+        "@sap/cds": "5.8.0",
+        "@sap/hana-client": "^2.4.182",
+        "@sap/xb-msg-amqp-v100": "^0.9.39",
+        "@sap/xsenv": "^3.1.1",
+        "@sap/xssec": "^3.2.2",
+        "express": "^4",
+        "grunt": "^1.1.0",
+        "passport": "^0.4.1",
+        "postcode-validator": "^3.1.1"
     },
-    "globals": {
-      "SELECT": true,
-      "INSERT": true,
-      "UPDATE": true,
-      "DELETE": true,
-      "CREATE": true,
-      "DROP": true,
-      "CDL": true,
-      "CQL": true,
-      "CXL": true,
-      "cds": true
+    "engines": {
+        "node": "16.x"
     },
-    "rules": {
-      "no-console": "off",
-      "require-atomic-updates": "off"
+    "scripts": {
+        "start": "npx cds run",
+        "test": "mocha tests/mocha.test.js --timeout 28000",
+        "test:integration": "mocha tests/mocha.test.js --timeout 28000",
+        "test:unit": "mocha tests/chai-test.js --timeout 15000 --exit"
+    },
+    "devDependencies": {
+        "axios": "^0.21.1",
+        "jest": "*",
+        "mocha": "^9.2.1",
+        "chai": "^4.3.4",
+        "chai-http": "^4.3.0"
+    },
+    "cds": {
+        "features": {
+            "fetch_csrf": true,
+            "kibana_formatter": true
+        },
+        "hana": {
+            "deploy-format": "hdbtable"
+        },
+        "requires": {
+            "messaging": {
+                "kind": "local-messaging",
+                "[production]": {
+                    "kind": "enterprise-messaging-shared",
+                    "queue": {
+                        "name": "refapps/bpems/abc/BusinessPartnerValidation-srv/1234"
+                    },
+                    "publishPrefix": "$namespace/",
+                    "subscribePrefix": "$namespace/"
+                }
+            },
+            "[production]": {
+                "db": {
+                    "kind": "hana",
+                    "model": [
+                        "db",
+                        "srv"
+                    ]
+                }
+            },
+            "API_BUSINESS_PARTNER": {
+                "kind": "odata-v2",
+                "model": "srv/external/API_BUSINESS_PARTNER",
+                "[production]": {
+                    "credentials": {
+                        "destination": "bupa",
+                        "requestTimeout": 18000000
+                    }
+                }
+            },
+            "uaa": {
+                "kind": "xsuaa"
+            }
+        }
     }
-  },
-  "cds": {
-    "requires": {
-      "API_BUSINESS_PARTNER": {
-        "kind": "odata-v2",
-        "model": "srv\\external\\API_BUSINESS_PARTNER"
-      }
-    }
-  }
 }
